@@ -93,11 +93,11 @@
           .addClass('ui-multiselect-checkboxes ui-helper-reset')
           .appendTo(menu);
 
-        // perform event bindings
-        this._bindEvents();
-
         // build menu
         this.refresh(true);
+
+        // perform event bindings
+        this._bindEvents();
 
         // some addl. logic for single selects
         if(!o.multiple) {
@@ -290,7 +290,7 @@
       });
 
       // header links
-      this.header.delegate('a', 'click.multiselect', function(e) {
+      this.header.find('a').click(function (e) {
         // close link
         if($(this).hasClass('ui-multiselect-close')) {
           self.close();
@@ -304,7 +304,7 @@
       });
 
       // optgroup label toggle support
-      this.menu.delegate('li.ui-multiselect-optgroup-label a', 'click.multiselect', function(e) {
+      this.menu.delegate('click.multiselect', 'li.ui-multiselect-optgroup-label a', function(e) {
         e.preventDefault();
 
         var $this = $(this);
@@ -329,39 +329,14 @@
           checked: nodes[0].checked
         });
       })
-      .delegate('label', 'mouseenter.multiselect', function() {
-        if(!$(this).hasClass('ui-state-disabled')) {
-          self.labels.removeClass('ui-state-hover');
-          $(this).addClass('ui-state-hover').find('input').focus();
-        }
-      })
-      .delegate('label', 'keydown.multiselect', function(e) {
-        e.preventDefault();
-
-        switch(e.which) {
-          case 9: // tab
-            case 27: // esc
-            self.close();
-          break;
-          case 38: // up
-            case 40: // down
-            case 37: // left
-            case 39: // right
-            self._traverse(e.which, this);
-          break;
-          case 13: // enter
-            $(this).find('input')[0].click();
-          break;
-        }
-      })
-      .delegate('input[type="checkbox"], input[type="radio"]', 'click.multiselect', function(e) {
+      .delegate('click.multiselect', 'input[type="checkbox"], input[type="radio"]', function (e) {
         var $this = $(this);
-        var val = this.value;
-        var checked = this.checked;
+        var val = this[0].value;
+        var checked = this[0].checked;
         var tags = self.element.find('option');
 
         // bail if this input is disabled or the event is cancelled
-        if(this.disabled || self._trigger('click', e, { value: val, text: this.title, checked: checked }) === false) {
+        if(this[0].disabled || self._trigger('click', e, { value: val, text: this[0].title, checked: checked }) === false) {
           e.preventDefault();
           return;
         }
@@ -399,6 +374,33 @@
         setTimeout($.proxy(self.update, self), 10);
       });
 
+      this.menu.find('label').bind('mouseenter.multiselect', function(){
+        if(!$(this).hasClass('ui-state-disabled')) {
+          self.labels.removeClass('ui-state-hover');
+          $(this).addClass('ui-state-hover').find('input').focus();
+        }
+      });
+
+      this.menu.find('label').bind('keydown.multiselect', function(e) {
+        e.preventDefault();
+
+        switch(e.which) {
+          case 9: // tab
+            case 27: // esc
+            self.close();
+          break;
+          case 38: // up
+            case 40: // down
+            case 37: // left
+            case 39: // right
+            self._traverse(e.which, this);
+          break;
+          case 13: // enter
+            $(this).find('input')[0].click();
+          break;
+        }
+      })
+
       // close each widget when clicking on any other element/anywhere else on the page
       $doc.bind('mousedown.' + this._namespaceID, function(event) {
         var target = event.target;
@@ -425,6 +427,8 @@
     // set button width
     _setButtonWidth: function() {
       var width = this.element.outerWidth();
+      if (width == 0)
+        width = parseInt(this.element.css('width'), 10);
       var o = this.options;
 
       if(/\d/.test(o.minWidth) && width < o.minWidth) {
@@ -438,7 +442,10 @@
     // set menu width
     _setMenuWidth: function() {
       var m = this.menu;
-      m.outerWidth(this.button.outerWidth());
+      var width = this.button.outerWidth();
+      if (width == 0)
+        width = parseInt(this.button.css('width'), 10);
+      m.outerWidth(width);
     },
 
     // move up or down within the menu
