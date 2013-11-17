@@ -451,24 +451,21 @@
     // move up or down within the menu
     _traverse: function(which, start) {
       var $start = $(start);
-      var moveToLast = which === 38 || which === 37;
-
+      var moveToLast = which === 39;
+      var moveToFirst = which === 37;
+      var up = which === 37 || which === 38;
+      
       // select the first li that isn't an optgroup label / disabled
-      var $next = $start.parent()[moveToLast ? 'prevAll' : 'nextAll']('li:not(.ui-multiselect-disabled, .ui-multiselect-optgroup-label)').first();
+      var $elements = $start.parent()[up ? 'prevAll' : 'nextAll']('li:not(.ui-multiselect-disabled, .ui-multiselect-optgroup-label)');
+      var $next = up ? (moveToFirst ? $elements.first() : $elements.last()) : (moveToLast ? $elements.last() : $elements.first());
 
       // if at the first/last element
-      if(!$next.length) {
-        var $container = this.menu.find('ul').last();
+      if(!$next.length)
+        $next = up ? $start.parent().siblings().last() : $start.parent().siblings().first();
 
-        // move to the first/last
-        this.menu.find('label')[ moveToLast ? 'last' : 'first' ]().trigger('mouseover');
-
-        // set scroll position
-        $container.scrollTop(moveToLast ? $container.height() : 0);
-
-      } else {
-        $next.find('label').trigger('mouseover');
-      }
+      // set scroll position
+      //$container.scrollTop(moveToLast ? $container.height() : 0);
+      $next.find('label').trigger('mouseover');
     },
 
     // This is an internal function to toggle the checked property and
